@@ -113,7 +113,7 @@ foreach ($array as $date => $set) {
     foreach ($set as $from => $rates) {
         $current = sprintf('%s/%d/%d/%s.json', $path, $carbon->year, $carbon->isoWeek, $from);
         if (!file_exists(dirname($current))) {
-            mkdir(dirname($current), 0644, true);
+            mkdir(dirname($current), 0777, true);
             $log->debug(sprintf('Created directory "%s"', dirname($current)));
         }
         $content = [];
