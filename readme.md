@@ -10,7 +10,7 @@ The currencies included in this service are listed [here](https://github.com/fir
 are limited to the currencies that are enabled by default in Firefly III. Cryptocurrency exchange rates are not downloaded.
 
 Your Firefly III installation will only download exchange rates for the currencies you have enabled. If you enable a new currency,
-exchange rates may be available. The next run of your [cron job](https://docs.firefly-iii.org/firefly-iii/advanced-installation/cron/), if configured correctly, will download them.
+exchange rates may not be available. The next run of your [cron job](https://docs.firefly-iii.org/firefly-iii/advanced-installation/cron/), if configured correctly, will download them.
 
 ## Contact
 
