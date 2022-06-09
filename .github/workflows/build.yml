@@ -25,6 +25,6 @@ jobs:
           source_dir: rates
           container_name: $web
           connection_string: ${{ secrets.ConnectionString }}
-          extra_args: '--pattern *.json'
+          # extra_args: '--pattern *.json'
           # WARNING: this will overwrite existing blobs in your blob storage
           overwrite: 'true'
