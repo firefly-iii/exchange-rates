@@ -2,7 +2,7 @@
 
 This script collects selected exchange rates from [exchangerate.host](https://exchangerate.host) and stores them in
 an Azure Storage container. Firefly III v5.8 and upwards can download these files and use them to calculate exchange
-rates withing Firefly III.
+rates in Firefly III.
 
 ## Limitations
 
