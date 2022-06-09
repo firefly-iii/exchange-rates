@@ -27,4 +27,4 @@ jobs:
           connection_string: ${{ secrets.ConnectionString }}
           # extra_args: '--pattern *.json'
           # WARNING: this will overwrite existing blobs in your blob storage
-          overwrite: 'true'
+          overwrite: true

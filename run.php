@@ -116,9 +116,12 @@ foreach ($array as $date => $set) {
             mkdir(dirname($current), 0777, true);
             $log->debug(sprintf('Created directory "%s"', dirname($current)));
         }
-        $content = [];
+        $content = [
+            'date'  => $date,
+            'rates' => [],
+        ];
         foreach ($rates as $to => $rate) {
-            $content[$to] = $rate;
+            $content['rates'][$to] = $rate;
         }
         $log->debug(sprintf('Stored file "%s" with %d rates', $current, count($content)));
         file_put_contents($current, json_encode($content, JSON_PRETTY_PRINT));
