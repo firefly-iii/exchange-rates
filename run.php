@@ -22,22 +22,21 @@ declare(strict_types=1);
  */
 
 use Carbon\Carbon;
-use Dotenv\Dotenv;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
+use Monolog\Level;
 use Monolog\Logger;
 
 include 'vendor/autoload.php';
 
-// prepare run
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
-
-$handler   = new StreamHandler('php://stdout', $_ENV['LOG_LEVEL']);
-$formatter = new LineFormatter(null, null, false, true);
-$log       = new Logger('exchange-rates');
+$timezone   = 'Europe/Amsterdam';
+$logLevel   = Level::Debug;
+$currencies = ['EUR', 'HUF', 'GBP', 'UAH', 'PLN', 'TRY', 'DKK', 'USD', 'BRL', 'CAD', 'MXN', 'IDR', 'AUD', 'NZD', 'EGP', 'MAD', 'ZAR', 'JPY', 'CNY', 'RUB', 'INR', 'ILS', 'CHF', 'HRK'];
+$handler    = new StreamHandler('php://stdout', $logLevel);
+$formatter  = new LineFormatter(null, null, false, true);
+$log        = new Logger('exchange-rates');
 $formatter->setDateFormat('Y-m-d H:i:s');
 $handler->setFormatter($formatter);
 $log->pushHandler($handler);
@@ -50,11 +49,9 @@ $log->debug('Start of Exchange Rates 1.0');
 /*
  * Variables for the run:
  */
-$all         = explode(',', $_ENV['CURRENCIES']);
 $date        = date('Y-m-d');
 $final       = [];
-$destination = sprintf('%s/%s.json', $_ENV['DESTINATION'], $date);
-$required    = explode(',', $_ENV['CURRENCIES']);
+$destination = sprintf('result/%s.json', $date);
 
 if (file_exists($destination)) {
     $log->error(sprintf('Destination "%s" already exists, will not run again.', $destination));
@@ -64,11 +61,11 @@ if (file_exists($destination)) {
  * Here we go for real
  */
 if (!file_exists($destination)) {
-    $log->debug(sprintf('Will search for these currencies: %s', join(', ', $required)));
+    $log->debug(sprintf('Will search for these currencies: %s', join(', ', $currencies)));
 
-    foreach ($required as $from) {
+    foreach ($currencies as $from) {
         $log->debug(sprintf('Will now query rates of currency "%s"', $from));
-        $url    = sprintf('https://api.exchangerate.host/latest?base=%s&symbols=%s', $from, join(',', $all));
+        $url    = sprintf('https://api.exchangerate.host/latest?base=%s&symbols=%s', $from, join(',', $currencies));
         $client = new Client();
         $opts   = [];
         try {
@@ -98,7 +95,7 @@ if (!file_exists($destination)) {
         $log->debug(sprintf('Requests left: %d of %d.', $headers['X-RateLimit-Remaining'][0] ?? 0, $headers['X-RateLimit-Limit'][0] ?? 0));
         sleep(1);
     }
-// save result:
+    // save result:
     file_put_contents($destination, json_encode($final, JSON_PRETTY_PRINT));
 }
 /*
@@ -111,7 +108,7 @@ $path  = realpath($_ENV['RATES']);
 $log->debug(sprintf('Will store rates in %s', $path));
 
 foreach ($array as $date => $set) {
-    $carbon = Carbon::createFromFormat('Y-m-d', $date, $_ENV['TZ']);
+    $carbon = Carbon::createFromFormat('Y-m-d', $date, $timezone);
     $log->debug(sprintf('Running for week %d, %d', $carbon->isoWeek, $carbon->year));
     foreach ($set as $from => $rates) {
         $current = sprintf('%s/%d/%d/%s.json', $path, $carbon->year, $carbon->isoWeek, $from);

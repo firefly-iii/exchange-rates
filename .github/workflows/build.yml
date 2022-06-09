@@ -16,4 +16,5 @@ jobs:
         run: |
           composer install
           php -v
+          mkdir result
           php run.php
