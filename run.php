@@ -103,7 +103,7 @@ if (!file_exists($destination)) {
  * This is a separate step so the download can be skipped if necessary.
  */
 $array = json_decode(file_get_contents($destination), true);
-$path  = realpath($_ENV['RATES']);
+$path  = realpath('rates');
 
 $log->debug(sprintf('Will store rates in %s', $path));
 

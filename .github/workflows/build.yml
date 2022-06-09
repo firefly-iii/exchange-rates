@@ -17,4 +17,5 @@ jobs:
           composer install
           php -v
           mkdir result
+          mkdir rates
           php run.php
