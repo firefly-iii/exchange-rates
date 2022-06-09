@@ -15,3 +15,5 @@ jobs:
       - name: Do something
         run: |
           composer install
+          php -v
+          php run.php
