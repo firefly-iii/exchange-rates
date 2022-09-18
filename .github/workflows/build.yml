@@ -19,7 +19,7 @@ jobs:
           php -v
           mkdir result
           mkdir rates
-          php run.php
+          php run.php ${{ secrets.CurrencyList }}
       - name: Upload
         uses: bacongobbler/azure-blob-storage-upload@main
         with:
