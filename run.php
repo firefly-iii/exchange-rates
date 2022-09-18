@@ -33,7 +33,7 @@ include 'vendor/autoload.php';
 
 $timezone   = 'Europe/Amsterdam';
 $logLevel   = Level::Debug;
-$currencies = ['EUR', 'HUF', 'GBP', 'UAH', 'PLN', 'TRY', 'DKK', 'USD', 'BRL', 'CAD', 'MXN', 'IDR', 'AUD', 'NZD', 'EGP', 'MAD', 'ZAR', 'JPY', 'CNY', 'RUB', 'INR', 'ILS', 'CHF', 'HRK'];
+$currencies = ['EUR', 'HUF', 'GBP', 'UAH', 'PLN', 'TRY', 'DKK', 'USD', 'BRL', 'CAD', 'MXN', 'IDR', 'AUD', 'NZD', 'EGP', 'MAD', 'ZAR', 'JPY', 'CNY', 'RUB', 'INR', 'ILS', 'CHF', 'HRK', 'RSD'];
 $handler    = new StreamHandler('php://stdout', $logLevel);
 $formatter  = new LineFormatter(null, null, false, true);
 $log        = new Logger('exchange-rates');
