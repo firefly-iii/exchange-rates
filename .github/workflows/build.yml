@@ -1,3 +1,5 @@
+name: Collect exchange rates
+
 on:
   workflow_dispatch:
   push:
