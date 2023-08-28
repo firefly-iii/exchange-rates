@@ -65,25 +65,8 @@ if (!file_exists($destination)) {
 
     foreach ($currencies as $from) {
         $log->debug(sprintf('Will now query rates of currency "%s"', $from));
-        $url    = sprintf('https://api.exchangerate.host/latest?base=%s&symbols=%s', $from, join(',', $currencies));
-        $client = new Client();
-        $opts   = [];
-        try {
-            $res = $client->request('GET', $url, $opts);
-        } catch (GuzzleException $e) {
-            $log->error(sprintf('Could not complete request: %s', $e->getMessage()));
-            exit(1);
-        }
-
-        // catch errors and issues.
-        if (200 !== $res->getStatusCode()) {
-            $log->error(sprintf('Status code is %d', $res->getStatusCode()));
-            $log->error((string) $res->getBody());
-            exit(1);
-        }
-
-        $body = (string) $res->getBody();
-        $json = json_decode($body, true);
+        $url  = sprintf('https://api.exchangerate.host/latest?base=%s&symbols=%s', $from, join(',', $currencies));
+        $json = download($log, $url);
 
         foreach ($json['rates'] as $to => $rate) {
             if ($from !== $to) {
@@ -91,8 +74,6 @@ if (!file_exists($destination)) {
                 $final[$date][$from][$to] = $rate;
             }
         }
-        $headers = $res->getHeaders();
-        $log->debug(sprintf('Requests left: %d of %d.', $headers['X-RateLimit-Remaining'][0] ?? 0, $headers['X-RateLimit-Limit'][0] ?? 0));
         sleep(1);
     }
     // save result:
@@ -126,4 +107,46 @@ foreach ($array as $date => $set) {
         $log->debug(sprintf('Stored file "%s" with %d rates', $current, count($content)));
         file_put_contents($current, json_encode($content, JSON_PRETTY_PRINT));
     }
+}
+
+function download(Logger $log, string $url): array
+{
+    $success = false;
+    $count   = 0;
+    $json    = [];
+    do {
+        $count++;
+        $log->debug(sprintf('Attempt %d to download %s', $count, $url));
+        $client = new Client();
+        try {
+            $res = $client->request('GET', $url, []);
+        } catch (GuzzleException $e) {
+            $log->error(sprintf('Could not complete request: %s', $e->getMessage()));
+            $success = false;
+            continue;
+        }
+        // catch errors and issues.
+        if (200 !== $res->getStatusCode()) {
+            $log->error(sprintf('Status code is %d', $res->getStatusCode()));
+            $log->error((string)$res->getBody());
+            $success = false;
+            continue;
+        }
+        if (200 === $res->getStatusCode()) {
+            $body    = (string)$res->getBody();
+            $json    = json_decode($body, true);
+            $headers = $res->getHeaders();
+            $log->debug(sprintf('Requests left: %d of %d.', $headers['X-RateLimit-Remaining'][0] ?? 0, $headers['X-RateLimit-Limit'][0] ?? 0));
+            $success = true;
+        }
+    }
+    while (false === $success && $count < 5);
+
+    if (false === $success) {
+        $log->error('Could not download URL after five tries. Will exit now.');
+        exit;
+    }
+
+    return $json;
+
 }
