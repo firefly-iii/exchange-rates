@@ -17,7 +17,7 @@ jobs:
 
       - name: Do something
         env:
-          EXCHANGE_RATE_API_KEY: ${{ secrets.EXCHANGE_RATE_API_KEY }}
+          accessKey: ${{ secrets.EXCHANGE_RATE_API_KEY }}
         run: |
           composer install
           php -v
