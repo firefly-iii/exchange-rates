@@ -136,7 +136,12 @@ function download(Logger $log, string $url): array
             $body    = (string)$res->getBody();
             $json    = json_decode($body, true);
             $headers = $res->getHeaders();
-            $log->debug(sprintf('Requests left: %d of %d.', $headers['X-RateLimit-Remaining'][0] ?? 0, $headers['X-RateLimit-Limit'][0] ?? 0));
+            $remaining = (int) ($headers['X-RateLimit-Remaining'][0] ?? 0);
+            $log->debug(sprintf('Requests left: %d of %d.', $remaining, $headers['X-RateLimit-Limit'][0] ?? 0));
+            if(0 === $remaining) {
+                echo 'No API things remain!';
+                exit 1;
+            }
             $success = true;
         }
     }
