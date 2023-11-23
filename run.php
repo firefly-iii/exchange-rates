@@ -79,7 +79,11 @@ if (!file_exists($destination)) {
         sleep(1);
     }
     // save result:
-    file_put_contents($destination, json_encode($final, JSON_PRETTY_PRINT));
+    $json = json_encode($final, JSON_PRETTY_PRINT);
+    file_put_contents($destination, $json);
+    echo sprintf('Store in %s:', $destination).PHP_EOL;
+    echo $json.PHP_EOL;
+    echo PHP_EOL;
 }
 /*
  * Parse results into JSON file for weekly consumption by clients
@@ -106,7 +110,7 @@ foreach ($array as $date => $set) {
         foreach ($rates as $to => $rate) {
             $content['rates'][$to] = $rate;
         }
-        $log->debug(sprintf('Stored file "%s" with %d rates', $current, count($content)));
+        $log->debug(sprintf('Stored file "%s" with %d rates', $current, count($content['rates'])));
         file_put_contents($current, json_encode($content, JSON_PRETTY_PRINT));
     }
 }
