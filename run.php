@@ -66,10 +66,11 @@ if (!file_exists($destination)) {
 
     foreach ($currencies as $from) {
         $log->debug(sprintf('Will now query rates of currency "%s"', $from));
-        $url  = sprintf('http://api.exchangerate.host/live?source=%s&symbols=%s&access_key=%s', $from, join(',', $currencies), $accessKey);
+        $url  = sprintf('http://api.exchangerate.host/live?source=%s&access_key=%s', $from, $accessKey);
         $json = download($log, $url);
 
-        foreach ($json['rates'] as $to => $rate) {
+        foreach ($json['quotes'] as $to => $rate) {
+            $to = substr($to,3);
             if ($from !== $to) {
                 $log->debug(sprintf('Found a rate for %s to %s: %f', $from, $to, $rate));
                 $final[$date][$from][$to] = $rate;
