@@ -65,7 +65,7 @@ if (!file_exists($destination)) {
 
     foreach ($currencies as $from) {
         $log->debug(sprintf('Will now query rates of currency "%s"', $from));
-        $url  = sprintf('https://api.exchangerate.host/latest?base=%s&symbols=%s&access_key=%s', $from, join(',', $currencies), $_ENV['EXCHANGE_RATE_API_KEY']);
+        $url  = sprintf('https://api.exchangerate.host/latest?base=%s&symbols=%s&access_key=%s', $from, join(',', $currencies), $_ENV['accessKey']);
         $json = download($log, $url);
 
         foreach ($json['rates'] as $to => $rate) {
