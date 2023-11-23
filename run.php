@@ -34,6 +34,7 @@ include 'vendor/autoload.php';
 $timezone   = 'Europe/Amsterdam';
 $logLevel   = Level::Debug;
 $currencies = explode(',', $argv[1]);
+$accessKey  = $argv[2];
 $handler    = new StreamHandler('php://stdout', $logLevel);
 $formatter  = new LineFormatter(null, null, false, true);
 $log        = new Logger('exchange-rates');
@@ -65,7 +66,7 @@ if (!file_exists($destination)) {
 
     foreach ($currencies as $from) {
         $log->debug(sprintf('Will now query rates of currency "%s"', $from));
-        $url  = sprintf('https://api.exchangerate.host/latest?base=%s&symbols=%s&access_key=%s', $from, join(',', $currencies), $_ENV['accessKey']);
+        $url  = sprintf('https://api.exchangerate.host/latest?base=%s&symbols=%s&access_key=%s', $from, join(',', $currencies), $accessKey);
         $json = download($log, $url);
 
         foreach ($json['rates'] as $to => $rate) {
