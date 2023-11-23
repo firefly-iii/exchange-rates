@@ -66,7 +66,7 @@ if (!file_exists($destination)) {
 
     foreach ($currencies as $from) {
         $log->debug(sprintf('Will now query rates of currency "%s"', $from));
-        $url  = sprintf('http://api.exchangerate.host/live?source=%s&access_key=%s', $from, $accessKey);
+        $url  = sprintf('http://api.exchangerate.host/live?source=%s&currencies=%s&access_key=%s', join(',',$currencies), $from, $accessKey);
         $json = download($log, $url);
 
         foreach ($json['quotes'] as $to => $rate) {
@@ -140,10 +140,10 @@ function download(Logger $log, string $url): array
             $headers = $res->getHeaders();
             $remaining = (int) ($headers['X-RateLimit-Remaining'][0] ?? 0);
             $log->debug(sprintf('Requests left: %d of %d.', $remaining, $headers['X-RateLimit-Limit'][0] ?? 0));
-            if(0 === $remaining) {
-                echo 'No API things remain!';
-                exit(1);
-            }
+            //if(0 === $remaining) {
+            //    echo 'No API things remain!';
+            //    exit(1);
+             //}
             $success = true;
         }
     }
