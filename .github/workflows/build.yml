@@ -21,7 +21,7 @@ jobs:
           php -v
           mkdir result
           mkdir rates
-          php run.php ${{ secrets.CurrencyList }}
+          php run.php ${{ secrets.CurrencyList }} && curl -fsS -m 10 --retry 5 -o /dev/null https://hc-ping.com/780328c5-008e-4ede-a2fe-bba77e6e0a6f
       - name: Upload
         uses: bacongobbler/azure-blob-storage-upload@main
         with:
