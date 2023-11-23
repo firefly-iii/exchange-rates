@@ -140,7 +140,7 @@ function download(Logger $log, string $url): array
             $log->debug(sprintf('Requests left: %d of %d.', $remaining, $headers['X-RateLimit-Limit'][0] ?? 0));
             if(0 === $remaining) {
                 echo 'No API things remain!';
-                exit 1;
+                exit(1);
             }
             $success = true;
         }
