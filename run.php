@@ -69,6 +69,12 @@ if (!file_exists($destination)) {
         $url  = sprintf('http://api.exchangerate.host/live?source=%s&currencies=%s&access_key=%s', $from, join(',',$currencies), $accessKey);
         $json = download($log, $url);
 
+        if(!array_key_exists('quotes', $json)) {
+            $log->error('No quotes found in JSON response.');
+            $log->error(json_encode($json, JSON_PRETTY_PRINT));
+            exit(1);
+        }
+
         foreach ($json['quotes'] as $to => $rate) {
             $to = substr($to,3);
             if ($from !== $to) {
