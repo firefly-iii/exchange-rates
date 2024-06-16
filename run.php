@@ -69,14 +69,13 @@ if (!file_exists($destination)) {
         $url  = sprintf('http://api.apilayer.com/exchangerates_data/latest?base=%s&symbols=%s', $from, join(',',$currencies));
         $json = download($log, $url, $accessKey);
 
-        if(!array_key_exists('quotes', $json)) {
+        if(!array_key_exists('rates', $json)) {
             $log->error('No quotes found in JSON response.');
             $log->error(json_encode($json, JSON_PRETTY_PRINT));
             exit(1);
         }
 
-        foreach ($json['quotes'] as $to => $rate) {
-            $to = substr($to,3);
+        foreach ($json['rates'] as $to => $rate) {
             if ($from !== $to) {
                 $log->debug(sprintf('Found a rate for %s to %s: %f', $from, $to, $rate));
                 $final[$date][$from][$to] = $rate;
