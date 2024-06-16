@@ -66,7 +66,7 @@ if (!file_exists($destination)) {
 
     foreach ($currencies as $from) {
         $log->debug(sprintf('Will now query rates of currency "%s"', $from));
-        $url  = sprintf('http://api.apilayer.com/exchangerates_data/live?base=%s&symbols=%s', $from, join(',',$currencies));
+        $url  = sprintf('http://api.apilayer.com/exchangerates_data/latest?base=%s&symbols=%s', $from, join(',',$currencies));
         $json = download($log, $url, $accessKey);
 
         if(!array_key_exists('quotes', $json)) {
