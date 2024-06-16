@@ -9,13 +9,13 @@ on:
     - cron: "0 3 * * MON"
 
 jobs:
-  jobbie:
+  exchange_rates:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Do something
+      - name: Download rates
         run: |
           composer install
           php -v
