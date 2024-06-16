@@ -66,8 +66,8 @@ if (!file_exists($destination)) {
 
     foreach ($currencies as $from) {
         $log->debug(sprintf('Will now query rates of currency "%s"', $from));
-        $url  = sprintf('http://api.exchangerate.host/live?source=%s&currencies=%s&access_key=%s', $from, join(',',$currencies), $accessKey);
-        $json = download($log, $url);
+        $url  = sprintf('http://api.apilayer.com/exchangerates_data/live?base=%s&currencies=%s', $from, join(',',$currencies));
+        $json = download($log, $url, $accessKey);
 
         if(!array_key_exists('quotes', $json)) {
             $log->error('No quotes found in JSON response.');
@@ -121,7 +121,7 @@ foreach ($array as $date => $set) {
     }
 }
 
-function download(Logger $log, string $url): array
+function download(Logger $log, string $url, string $accessKey): array
 {
     $success = false;
     $count   = 0;
@@ -131,7 +131,12 @@ function download(Logger $log, string $url): array
         $log->debug(sprintf('Attempt %d to download %s', $count, $url));
         $client = new Client();
         try {
-            $res = $client->request('GET', $url, []);
+            $opts = [
+                'headers' => [
+                    'apikey' => $accessKey,
+                ],
+            ];
+            $res = $client->request('GET', $url, $opts);
         } catch (GuzzleException $e) {
             $log->error(sprintf('Could not complete request: %s', $e->getMessage()));
             $success = false;
