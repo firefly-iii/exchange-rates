@@ -81,7 +81,7 @@ if (!file_exists($destination)) {
                 $final[$date][$from][$to] = $rate;
             }
         }
-        sleep(1);
+        sleep(5);
     }
     // save result:
     $json = json_encode($final, JSON_PRETTY_PRINT);
@@ -138,6 +138,9 @@ function download(Logger $log, string $url, string $accessKey): array
             $res = $client->request('GET', $url, $opts);
         } catch (GuzzleException $e) {
             $log->error(sprintf('Could not complete request: %s', $e->getMessage()));
+            if(method_exists($e, 'hasResponse') && $e->hasResponse()) {
+                $log->error((string) $e->getResponse()->getBody());
+            }
             $success = false;
             continue;
         }
@@ -165,7 +168,7 @@ function download(Logger $log, string $url, string $accessKey): array
 
     if (false === $success) {
         $log->error('Could not download URL after five tries. Will exit now.');
-        exit;
+        exit(1);
     }
 
     return $json;

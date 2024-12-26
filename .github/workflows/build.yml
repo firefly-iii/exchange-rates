@@ -17,6 +17,7 @@ jobs:
 
       - name: Download rates
         run: |
+          set -euo pipefail
           composer install
           php -v
           mkdir result
