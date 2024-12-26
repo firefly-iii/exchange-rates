@@ -21,9 +21,11 @@ declare(strict_types=1);
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use App\Exception\DownloadException;
+use App\RateDownloader\ApiLayerDownloader;
+use App\RateDownloader\DownloaderInterface;
+use App\RateDownloader\ExchangeRateDownloader;
 use Carbon\Carbon;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Level;
@@ -34,7 +36,6 @@ include 'vendor/autoload.php';
 $timezone   = 'Europe/Amsterdam';
 $logLevel   = Level::Debug;
 $currencies = explode(',', $argv[1]);
-$accessKey  = $argv[2];
 $handler    = new StreamHandler('php://stdout', $logLevel);
 $formatter  = new LineFormatter(null, null, false, true);
 $log        = new Logger('exchange-rates');
@@ -53,6 +54,9 @@ $log->debug('Start of Exchange Rates 1.0');
 $date        = date('Y-m-d');
 $final       = [];
 $destination = sprintf('result/%s.json', $date);
+$downloaders = [ExchangeRateDownloader::class, ApiLayerDownloader::class];
+$tokens      = [getenv('EXCHANGE_RATE_KEY'), getenv('API_LAYER_KEY')];
+$result      = [];
 
 if (file_exists($destination)) {
     $log->error(sprintf('Destination "%s" already exists, will not run again.', $destination));
@@ -66,43 +70,60 @@ if (!file_exists($destination)) {
 
     foreach ($currencies as $from) {
         $log->debug(sprintf('Will now query rates of currency "%s"', $from));
-        $url  = sprintf('http://api.apilayer.com/exchangerates_data/latest?base=%s&symbols=%s', $from, join(',',$currencies));
-        $json = download($log, $url, $accessKey);
 
-        if(!array_key_exists('rates', $json)) {
-            $log->error('No quotes found in JSON response.');
-            $log->error(json_encode($json, JSON_PRETTY_PRINT));
-            exit(1);
-        }
+        // at this point several services exist that we can poll for data, and we support many of them (or at least two).
+        foreach ($downloaders as $index => $downloader) {
+            /** @var DownloaderInterface $object */
+            $object = new $downloader($log);
+            $object->setFrom($from);
+            $object->setTo($currencies);
+            $object->setToken($tokens[$index]);
 
-        foreach ($json['rates'] as $to => $rate) {
-            if ($from !== $to) {
-                $log->debug(sprintf('Found a rate for %s to %s: %f', $from, $to, $rate));
-                $final[$date][$from][$to] = $rate;
+            try {
+                $object->download();
+            } catch (DownloadException $e) {
+                $log->error(sprintf('Could not download rates for %s: %s', $from, $e->getMessage()));
+                continue;
             }
+            /**
+             * Expects the following format:
+             * YYYY-MM-DD => [
+             *   ABC => rate
+             *   DEF => rate
+             *
+             * etc.
+             */
+
+            $result[$from] = $object->getResult();
+            if (count($result) === 0) {
+                $log->error(sprintf('No rates found for %s', $from));
+                continue;
+            }
+            break;
         }
-        sleep(5);
+        sleep(4);
     }
-    // save result:
-    $json = json_encode($final, JSON_PRETTY_PRINT);
-    file_put_contents($destination, $json);
-    echo sprintf('Store in %s:', $destination).PHP_EOL;
-    echo $json.PHP_EOL;
-    echo PHP_EOL;
 }
+
+if (0 === count($result)) {
+    $log->error('No rates found at all. Will exit now.');
+    exit(1);
+}
+
 /*
  * Parse results into JSON file for weekly consumption by clients
  * This is a separate step so the download can be skipped if necessary.
  */
-$array = json_decode(file_get_contents($destination), true);
-$path  = realpath('rates');
+$path = realpath('rates');
 
 $log->debug(sprintf('Will store rates in %s', $path));
 
-foreach ($array as $date => $set) {
-    $carbon = Carbon::createFromFormat('Y-m-d', $date, $timezone);
-    $log->debug(sprintf('Running for week %d, %d', $carbon->isoWeek, $carbon->year));
-    foreach ($set as $from => $rates) {
+var_dump($result);
+
+foreach ($result as $from => $set) {
+    foreach ($set as $date => $rates) {
+        $carbon = Carbon::createFromFormat('Y-m-d', $date, $timezone);
+        $log->debug(sprintf('[%s] Running for week %d, %d', $from, $carbon->isoWeek, $carbon->year));
         $current = sprintf('%s/%d/%d/%s.json', $path, $carbon->year, $carbon->isoWeek, $from);
         if (!file_exists(dirname($current))) {
             mkdir(dirname($current), 0777, true);
@@ -120,57 +141,4 @@ foreach ($array as $date => $set) {
     }
 }
 
-function download(Logger $log, string $url, string $accessKey): array
-{
-    $success = false;
-    $count   = 0;
-    $json    = [];
-    do {
-        $count++;
-        $log->debug(sprintf('Attempt %d to download %s', $count, $url));
-        $client = new Client();
-        try {
-            $opts = [
-                'headers' => [
-                    'apikey' => $accessKey,
-                ],
-            ];
-            $res = $client->request('GET', $url, $opts);
-        } catch (GuzzleException $e) {
-            $log->error(sprintf('Could not complete request: %s', $e->getMessage()));
-            if(method_exists($e, 'hasResponse') && $e->hasResponse()) {
-                $log->error((string) $e->getResponse()->getBody());
-            }
-            $success = false;
-            continue;
-        }
-        // catch errors and issues.
-        if (200 !== $res->getStatusCode()) {
-            $log->error(sprintf('Status code is %d', $res->getStatusCode()));
-            $log->error((string)$res->getBody());
-            $success = false;
-            continue;
-        }
-        if (200 === $res->getStatusCode()) {
-            $body    = (string)$res->getBody();
-            $json    = json_decode($body, true);
-            $headers = $res->getHeaders();
-            $remaining = (int) ($headers['X-RateLimit-Remaining'][0] ?? 0);
-            $log->debug(sprintf('Requests left: %d of %d.', $remaining, $headers['X-RateLimit-Limit'][0] ?? 0));
-            //if(0 === $remaining) {
-            //    echo 'No API things remain!';
-            //    exit(1);
-             //}
-            $success = true;
-        }
-    }
-    while (false === $success && $count < 5);
 
-    if (false === $success) {
-        $log->error('Could not download URL after five tries. Will exit now.');
-        exit(1);
-    }
-
-    return $json;
-
-}

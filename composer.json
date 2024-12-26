@@ -3,5 +3,10 @@
         "guzzlehttp/guzzle": "^7.4",
         "monolog/monolog": "^3.0",
         "nesbot/carbon": "^2.58"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
     }
 }

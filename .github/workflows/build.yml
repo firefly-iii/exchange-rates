@@ -22,7 +22,10 @@ jobs:
           php -v
           mkdir result
           mkdir rates
-          php run.php ${{ secrets.CurrencyList }} ${{ secrets.AccessKey }} && curl -fsS -m 10 --retry 5 -o /dev/null https://hc-ping.com/780328c5-008e-4ede-a2fe-bba77e6e0a6f
+          php run.php ${{ secrets.CurrencyList }} && curl -fsS -m 10 --retry 5 -o /dev/null https://hc-ping.com/780328c5-008e-4ede-a2fe-bba77e6e0a6f
+        env:
+          API_LAYER_KEY: ${{ secrets.AccessKey }}
+          EXCHANGE_RATE_KEY:  ${{ secrets.ExchangeRateAccessKey }}
       - name: Upload
         uses: bacongobbler/azure-blob-storage-upload@main
         with:
