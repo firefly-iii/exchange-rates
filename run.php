@@ -118,8 +118,6 @@ $path = realpath('rates');
 
 $log->debug(sprintf('Will store rates in %s', $path));
 
-var_dump($result);
-
 foreach ($result as $from => $set) {
     foreach ($set as $date => $rates) {
         $carbon = Carbon::createFromFormat('Y-m-d', $date, $timezone);
