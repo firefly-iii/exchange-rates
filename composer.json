@@ -2,7 +2,7 @@
     "require": {
         "guzzlehttp/guzzle": "^7.4",
         "monolog/monolog": "^3.0",
-        "nesbot/carbon": "^2.58"
+        "nesbot/carbon": "^3"
     },
     "autoload": {
         "psr-4": {

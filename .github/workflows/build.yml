@@ -14,7 +14,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      - name: Update repository
+        run: |
+          cd $GITHUB_WORKSPACE
+          git config user.email "robot@firefly-iii.org"
+          git config user.name "Firefly III build robot"
+          echo $(date '+%d-%m-%Y %T %Z') > date.txt
+          git add date.txt
+          git commit -m "Auto commit on $(date '+%d-%m-%Y') [skip ci]"
+          git push
       - name: Download rates
         run: |
           set -euo pipefail
