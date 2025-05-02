@@ -35,6 +35,9 @@ include 'vendor/autoload.php';
 
 $timezone   = 'Europe/Amsterdam';
 $logLevel   = Level::Debug;
+
+// currency list is a secret, because people keep injecting their own currencies as PR.
+
 $currencies = explode(',', $argv[1]);
 $handler    = new StreamHandler('php://stdout', $logLevel);
 $formatter  = new LineFormatter(null, null, false, true);
