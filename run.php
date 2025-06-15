@@ -127,6 +127,14 @@ $path = realpath('rates');
 
 $log->debug(sprintf('Will store rates in %s', $path));
 
+foreach(array_keys($result) as $from) {
+    if(0 === count($result[$from])) {
+        $log->error(sprintf('No rates found for %s, remove entry.', $from));
+        unset($result[$from]);
+    }
+}
+
+
 /*
  * Duplicate CNY into RMB because it is not downloaded.
  */
