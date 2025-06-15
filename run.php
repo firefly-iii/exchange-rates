@@ -33,18 +33,24 @@ use Monolog\Logger;
 
 include 'vendor/autoload.php';
 
-$timezone   = 'Europe/Amsterdam';
-$logLevel   = Level::Debug;
+$timezone = 'Europe/Amsterdam';
+$logLevel = Level::Debug;
 
 // currency list is a secret, because people keep injecting their own currencies as PR.
 
 $currencies = explode(',', $argv[1]);
-$handler    = new StreamHandler('php://stdout', $logLevel);
-$formatter  = new LineFormatter(null, null, false, true);
-$log        = new Logger('exchange-rates');
+$handler = new StreamHandler('php://stdout', $logLevel);
+$formatter = new LineFormatter(null, null, false, true);
+$log = new Logger('exchange-rates');
 $formatter->setDateFormat('Y-m-d H:i:s');
 $handler->setFormatter($formatter);
 $log->pushHandler($handler);
+
+/**
+ * Both RMB and CNY are present.
+ *
+ * EUR,HUF,GBP,UAH,PLN,TRY,DKK,ISK,NOK,SEK,RON,USD,BRL,CAD,MXN,IDR,AUD,NZD,EGP,MAD,ZAR,JPY,CNY,RMB,RUB,INR,ILS,CHF,HRK,HKD,CHF,NOK,CZK
+ */
 
 /*
  * Here we go:
@@ -54,12 +60,12 @@ $log->debug('Start of Exchange Rates 1.0');
 /*
  * Variables for the run:
  */
-$date        = date('Y-m-d');
-$final       = [];
+$date = date('Y-m-d');
+$final = [];
 $destination = sprintf('result/%s.json', $date);
 $downloaders = [ExchangeRateDownloader::class, ApiLayerDownloader::class];
-$tokens      = [getenv('EXCHANGE_RATE_KEY'), getenv('API_LAYER_KEY')];
-$result      = [];
+$tokens = [getenv('EXCHANGE_RATE_KEY'), getenv('API_LAYER_KEY')];
+$result = [];
 
 if (file_exists($destination)) {
     $log->error(sprintf('Destination "%s" already exists, will not run again.', $destination));
@@ -121,6 +127,18 @@ $path = realpath('rates');
 
 $log->debug(sprintf('Will store rates in %s', $path));
 
+/*
+ * Duplicate CNY into RMB because it is not downloaded.
+ */
+if (array_key_exists('CNY', $result) && !array_key_exists('RMB', $result)) {
+    $log->debug('Copy RMB rates from CNY.');
+    $result['RMB'] = $result['CNY'];
+}
+if (!array_key_exists('CNY', $result) && array_key_exists('RMB', $result)) {
+    $log->debug('Copy CNY rates from RMB.');
+    $result['CNY'] = $result['RMB'];
+}
+
 foreach ($result as $from => $set) {
     foreach ($set as $date => $rates) {
         $carbon = Carbon::createFromFormat('Y-m-d', $date, $timezone);
@@ -131,7 +149,7 @@ foreach ($result as $from => $set) {
             $log->debug(sprintf('Created directory "%s"', dirname($current)));
         }
         $content = [
-            'date'  => $date,
+            'date' => $date,
             'rates' => [],
         ];
         foreach ($rates as $to => $rate) {
