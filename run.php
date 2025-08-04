@@ -169,3 +169,4 @@ foreach ($result as $from => $set) {
 }
 
 
+$log->debug('Done!');
