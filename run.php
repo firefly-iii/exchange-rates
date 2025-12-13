@@ -49,7 +49,7 @@ $log->pushHandler($handler);
 /**
  * Both RMB and CNY are present.
  *
- * EUR,HUF,GBP,UAH,PLN,TRY,DKK,ISK,NOK,SEK,RON,USD,BRL,CAD,MXN,IDR,AUD,NZD,EGP,MAD,ZAR,JPY,CNY,RMB,RUB,INR,ILS,CHF,HRK,HKD,CHF,NOK,CZK
+ * EUR,HUF,GBP,UAH,PLN,TRY,DKK,ISK,NOK,SEK,RON,USD,BRL,CAD,MXN,PEN,ARS,COP,CLP,IDR,AUD,NZD,EGP,MAD,ZAR,JPY,CNY,KRW,RMB,RUB,INR,THI,ILS,CHF,HRK,HKD,CHF,NOK,CZK,KZT,SAR
  */
 
 /*
@@ -63,8 +63,13 @@ $log->debug('Start of Exchange Rates 1.0');
 $date = date('Y-m-d');
 $final = [];
 $destination = sprintf('result/%s.json', $date);
+
+// original set:
+// api layer downloader is never used since exchange rate downloader never fails.
 $downloaders = [ExchangeRateDownloader::class, ApiLayerDownloader::class];
 $tokens = [getenv('EXCHANGE_RATE_KEY'), getenv('API_LAYER_KEY')];
+
+
 $result = [];
 
 if (file_exists($destination)) {
