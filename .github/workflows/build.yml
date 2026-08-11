@@ -14,15 +14,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-      - name: Update repository
-        run: |
-          cd $GITHUB_WORKSPACE
-          git config user.email "robot@firefly-iii.org"
-          git config user.name "Firefly III build robot"
-          echo $(date '+%d-%m-%Y %T %Z') > date.txt
-          git add date.txt
-          git commit -m "Auto commit on $(date '+%d-%m-%Y') [skip ci]"
-          git push
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -53,3 +44,12 @@ jobs:
           # extra_args: '--pattern *.json'
           # WARNING: this will overwrite existing blobs in your blob storage
           overwrite: true
+      - name: Update repository
+        run: |
+          cd $GITHUB_WORKSPACE
+          git config user.email "robot@firefly-iii.org"
+          git config user.name "Firefly III build robot"
+          echo $(date '+%d-%m-%Y %T %Z') > date.txt
+          git add date.txt
+          git commit -m "Auto commit on $(date '+%d-%m-%Y') [skip ci]"
+          git push
