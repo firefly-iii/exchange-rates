@@ -23,6 +23,11 @@ jobs:
           git add date.txt
           git commit -m "Auto commit on $(date '+%d-%m-%Y') [skip ci]"
           git push
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          extensions: mbstring, intl, zip, bcmath
       - name: Download rates
         run: |
           set -euo pipefail
